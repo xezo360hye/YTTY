@@ -1,26 +1,33 @@
 #!/bin/bash
 
-SELF=$( dirname "$0" )
+SELF=$( dirname "$BASH_SOURCE" )
 
 source "$SELF/log.sh"
+source "$SELF/config.sh"
 
-log "Logger imported, sourcing other modules" && {
-	source "$SELF/config.sh"
-	source "$SELF/search.sh"
-	source "$SELF/download.sh"
-	source "$SELF/player.sh"
-	unset SELF
-}
+source "$SELF/search.sh"
+source "$SELF/play.sh"
 
-log "Importing done"
+while [[ -n "$1" ]]; do
+	str=$(tr '[:lower:]' '[:upper:]' <<< "$1")
+	case "$1" in
+	--)
+		shift
+		break;;
+	-*)
+		declare ${str:1}="$2"
+		shift 2;;
+	*)
+		break;;
+	esac
+done
 
-set -e
+log "Importing and parsing arguments done"
+
+if [[ -z "$URL" ]]; then
 	log "Starting search"
-	url=$( video.search "$@" )
+	URL=$( video.search "$@" )
+fi
 
-	log "Downloading $url"
-	file=$( video.download "$url" )
-
-	log "Playing $file"
-	video.play "$file"
-set +e
+log "Downloading and playing $URL"
+video.start "$URL"

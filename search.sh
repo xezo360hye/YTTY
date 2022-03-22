@@ -1,23 +1,17 @@
-#!/bin/bash
-
 video.search() {
-	log "Count: $COUNT, request: $@" && {
-		[[ "$@" = "" ]] && error 1 "Request must not be empty"
-	}
+	request="ytsearch$COUNT:$@"
 
-	log "Starting search" && {
-		results=$( youtube-dl -j "ytsearch$COUNT:$@" )
-		mapfile -t titles < <( jq '.fulltitle' <<< "$results" | tr -d '"' )
-		mapfile -t urls < <( jq '.webpage_url' <<< "$results" | tr -d '"' ) 
-	}
+	log "Starting search '$request'"
 
-	log "Found ${#urls[@]} videos ready to download" && {
-		PS3="Select video to watch: "
-		select video in "${titles[@]}"; do
-			echo "${urls[
-					$(( $REPLY - 1 ))
-				]}"
-			return
-		done
-	}
+	results=$( youtube-dl -j "$request" )
+	mapfile -t titles < <( jq '.fulltitle' <<< "$results" | tr -d '"' )
+	mapfile -t urls < <( jq '.webpage_url' <<< "$results" | tr -d '"' ) 
+
+	log "Found ${#urls[@]} videos ready to download"
+
+	PS3="Select video to watch: "
+	select video in "${titles[@]}"; do
+		echo "${urls[$(( $REPLY - 1 ))]}"
+		return
+	done
 }
