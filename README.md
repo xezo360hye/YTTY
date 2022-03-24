@@ -25,43 +25,51 @@ After you've installed requirements, just run the commands below:
 ```
 git clone https://github.com/xezo360hye/YTTY
 cd YTTY
-chmod +x start.sh
+chmod +x start
 ```
 
 And you are ready to use this awesome program!
 
 ## Usage
 
-Just run `./start.sh SEARCH REQUEST` in TTY
+Just run `./start SEARCH REQUEST` in TTY
 
 *Note: mplayer uses framebuffer in this project so AFAIK it's impossible to use this in graphical terminal (e.g. Konsole)*
 
-*Note: running out of project folder is also supported - just specify path to project, like `~/YTTY/start.sh SEARCH`*
+*Note: running out of project folder is also supported - just specify path to project, like `~/YTTY/start SEARCH`*
 
 ### Creating command to use this everywhere
 
-Create a file that will call `start.sh` and move it to your `$PATH`:
+Create a file that will call `start` and move it to your `$PATH`:
 
 ```
-echo "/PATH/TO/YTTY/start.sh" > yt
+echo "/PATH/TO/YTTY/start" > yt
 chmod +x yt
 sudo mv yt YOUR_PATH_FOLDER
 ```
 
-For example, `echo '~/YTTY/start.sh "$@"'` and `sudo mv yt /usr/bin/`
+For example, `echo '~/YTTY/start "$@"'` and `sudo mv yt /usr/bin/`
 
 After all these steps, you can simply use `yt REQUEST` and enjoy your movie!
 
 
-## Options
+## Usage
 
-You can use `-oPtiON VALUE` to control program. You can specify all the options from `config.sh` (the ones you enter in command are prior, e.g. if you use -debug true it ignores whatever said in config), and also you can set URL to skip search
+The syntax is `./start [OPTIONS] Search request` or `./start [OPTIONS] -url video_url_code`
 
-Example of playing some good music and video in 16px wide with cache size 2048 and no file out: `./start.sh -url dQw4w9WgXcQ -size 16 -cache 2048 -format ''`
+All options (including -url) are CaSe insensitive
+
+When using -url, you need to enter video code, e.g. in *https://www.youtube.com/watch?v=**dQw4w9WgXcQ*** the code is *dQw4w9WgXcQ*
+
+### Options
+
+You can use `-option VALUE` to control program. You can specify all the options from `config` (the ones you enter in command are prior, e.g. if you use *-debug true* then YTTY ignores whatever said in config), and also you can set URL to skip search
+
+Example of playing some good music and video in 16px wide with cache size 2048 and no file out: `./start -url dQw4w9WgXcQ -size 16 -cache 2048 -format ''`
 
 *Note: you can set FORMAT to empty string ('' or "") to play without saving*
 
-Example of playing Belupacito with MOAR cache and with saving: `./start.sh -cache 8096 -format "BELUPACITO | THE BEST SONG EVER" -- Belupacito`
+Example of playing Belupacito with MOAR cache and with saving: `./start -cache 8096 -format "BELUPACITO | THE BEST SONG EVER" -- Belupacito`
 
 *Note: you can set a static string for FORMAT*
 

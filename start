@@ -2,11 +2,11 @@
 
 SELF=$( dirname "$BASH_SOURCE" )
 
-source "$SELF/log.sh"
-source "$SELF/config.sh"
+source "$SELF/log"
+source "$SELF/config"
 
-source "$SELF/search.sh"
-source "$SELF/play.sh"
+source "$SELF/search"
+source "$SELF/play"
 
 while [[ -n "$1" ]]; do
 	str=$(tr '[:lower:]' '[:upper:]' <<< "$1")
