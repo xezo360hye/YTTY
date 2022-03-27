@@ -11,6 +11,19 @@ source "$SELF/play"
 while [[ -n "$1" ]]; do
 	str=$(tr '[:lower:]' '[:upper:]' <<< "$1")
 	case "$1" in
+	-h|--help)
+		echo "\
+Usage:
+	ytty [ OPTIONS ] [ -- ] Search string
+	ytty [ OPTIONS ] -url VIDEO_CODE
+
+All options are CaSe insensitive. You can set all parameters from the config file like debug mode, output format e.g.
+
+Video code for -URL is the part of URL after \"/watch?v=\", for example dQw4w9WgXcQ
+
+Check out README file on GitHub page for more information and examples:
+https://github.com/xezo360hye/YTTY"
+		exit 0;;
 	--)
 		shift
 		break;;

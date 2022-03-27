@@ -6,10 +6,6 @@ DEBUG=true
 # Valid values: any integer for tput
 DEBUG_COLOR=123
 
-# The X dimension of screen
-# Valid values: any integer <= your screen X resolution and > 0 (actually not zero)
-SIZE=1366
-
 # Count of videos that will be shown on search
 # Valid values: any integer > 0
 COUNT=5

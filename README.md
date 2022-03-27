@@ -34,9 +34,9 @@ And you are ready to use this awesome program!
 
 Just run `./start SEARCH REQUEST` in TTY
 
-*Note: mplayer uses framebuffer in this project so AFAIK it's impossible to use this in graphical terminal (e.g. Konsole)*
+*Note: mplayer uses framebuffer in this project so AFAIK it's impossible to use this in graphical terminal (Konsole e.g.)*
 
-*Note: running out of project folder is also supported - just specify path to project, like `~/YTTY/start SEARCH`*
+*Note: running out of poject folder is also supported - just specify path to project, like `~/YTTY/start SEARCH`*
 
 ### Creating command to use this everywhere
 
@@ -69,7 +69,7 @@ Example of playing some good music and video in 16px wide with cache size 2048 a
 
 *Note: you can set FORMAT to empty string ('' or "") to play without saving*
 
-Example of playing Belupacito with MOAR cache and with saving: `./start -cache 8096 -format "BELUPACITO | THE BEST SONG EVER" -- Belupacito`
+Example of playing Belupacito with MOAR cache and with saving: `./start -cache 4096 -format "BELUPACITO | THE BEST SONG EVER" -- Belupacito`
 
 *Note: you can set a static string for FORMAT*
 
@@ -82,4 +82,5 @@ Example of playing Belupacito with MOAR cache and with saving: `./start -cache 8
 </summary>
 
 * It's not actually an error - it's the video format that mplayer detected. If you see "*Cache empty, consider...*" after libavformat lines than try increasing cache size, this should help
+
 </details>
