@@ -1,3 +1,5 @@
+#!/bin/bash
+
 video.search() {
 	request="ytsearch$COUNT:$@"
 
