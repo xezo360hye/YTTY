@@ -15,8 +15,7 @@ sudo pacman -S mplayer youtube-dl
 * Debian / Ubuntu (install pip3 first):
 
 ```
-pip3 install youtube-dl
-sudo apt-get install mplayer
+sudo apt-get install mplayer youtube-dl
 ```
 
 * Other distros: find on the internet and please share with me cuz I'm too lazy to search
