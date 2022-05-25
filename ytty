@@ -1,24 +1,49 @@
 #!/bin/bash
 
+# Set default values.
+# Feel free to modify, but be accurate!
+ytty::defaults() {
+	# this line gets the display width and height in format 'width,height'.
+	local xy=$(cat /sys/class/graphics/fb0/virtual_size)
+
+	PLAYER='mplayer'							# Player to use.
+	SEARCHER='youtube-dl'						# Searcher to use.
+
+	x=${xy%,*}									# Width
+	y=${xy#*,}									# Height
+
+	COUNT=5										# Number of results to show.
+	CACHE=1024									# This is 1MB or 1s depending on player.
+	
+	FORMAT="[%(channel)s] -> %(title)s.%(ext)s"	# Saving format.
+
+	VERBOSE=false								# Verbose mode.
+	LOG_FILE=''									# Log file (empty means stdout).
+}
+
 # Function to display ytty::usage and exit
 ytty::usage() {
-	echo "\
-Usage:
-	ytty [ OPTIONS ] [ -- ] Search string
-	ytty [ OPTIONS ] -url VIDEO_CODE
+    echo "Usage:
+    ytty [ OPTIONS ] [ -- ] Search string
+    ytty [ OPTIONS ] --url VIDEO_CODE
 
-All options are CaSe insensitive. List of options:
-	-h, --help		Display this help message
-	-v, --verbose		Verbose mode
-	-f, --format		Output format
-	-c, --cache		Cache size
+Options:
+    -h, --help               Display this help message
+    -v, --verbose            Verbose mode
+    -l, --log-file           Log to file
 
-	-u, --url		Use video code instead of search string
+    -s, --searcher           Searcher to use
+    -p, --player             Player to use
 
-Video code for -URL is the part of URL after '/watch?v=', for example dQw4w9WgXcQ
+    -f, --format             Output format
+    -n, --no-save            Don't save video
 
-Check out GitHub page for more information and examples:
-https://github.com/xezo360hye/YTTY"
+    -c, --cache              Cache size
+    -u, --url                Use video code instead of search string
+
+Video code for --URL is the part of URL after '/watch?v=', for example dQw4w9WgXcQ
+
+Check GitHub page for more information and examples: https://github.com/xezo360hye/YTTY"
 
 	# Exit with status 0 if no arguments were given, otherwise with status '$1'.
 	exit ${1:-0}
@@ -50,26 +75,6 @@ ytty::check_tty() {
 				;;
 		esac
 	fi
-}
-
-# set default values.
-ytty::defaults() {
-	# this line gets the display width and height in format 'width,height'.
-	local xy=$(cat /sys/class/graphics/fb0/virtual_size)
-	
-	x=${xy%,*}					# width
-	Y=${xy#*,}					# Height
-
-	COUNT=5						# Number of results to show.
-
-	PLAYER='mplayer'			# Player to use.
-	SEARCHER='youtube-dl'		# Searcher to use.
-	CACHE=1024					# This is 1MB or 1s depending on player.
-	
-	FORMAT="[%(channel)s] -> %(title)s.%(ext)s"	# Output format.
-
-	VERBOSE=false					# Verbose mode.
-	LOG_FILE=''					# Log file (empty means stdout).
 }
 
 ytty::search() {
@@ -178,7 +183,7 @@ ytty::start() {
 				shift 2
 			else
 				# Display error message and exit with error status code.
-				echo "Missing or invalid argument for option '$1'" 1>&2
+				echo "Missing or invalid argument for option '$1': '$2'" 1>&2
 				ytty::usage 1
 			fi
 			;;
@@ -190,7 +195,7 @@ ytty::start() {
 				shift 2
 			else
 				# Display error message and exit with error status code.
-				echo "Missing or invalid argument for option '$1'" 1>&2
+				echo "Missing or invalid argument for option '$1': '$2'" 1>&2
 				ytty::usage 1
 			fi
 			;;
@@ -202,7 +207,7 @@ ytty::start() {
 				shift 2
 			else
 				# Display error message and exit with error status code.
-				echo "Missing or invalid argument for option '$1'" 1>&2
+				echo "Missing or invalid argument for option '$1': '$2'" 1>&2
 				ytty::usage 1
 			fi
 			;;
@@ -215,7 +220,7 @@ ytty::start() {
 				shift 2
 			else
 				# Display error message and exit with error status code.
-				echo "Missing or invalid argument for option '$1'" 1>&2
+				echo "Missing or invalid argument for option '$1': '$2'" 1>&2
 				ytty::usage 1
 			fi
 			;;
