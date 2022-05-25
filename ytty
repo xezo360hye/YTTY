@@ -1,0 +1,259 @@
+#!/bin/bash
+
+# Function to display ytty::usage and exit
+ytty::usage() {
+	echo "\
+Usage:
+	ytty [ OPTIONS ] [ -- ] Search string
+	ytty [ OPTIONS ] -url VIDEO_CODE
+
+All options are CaSe insensitive. List of options:
+	-h, --help		Display this help message
+	-v, --verbose		Verbose mode
+	-f, --format		Output format
+	-c, --cache		Cache size
+
+	-u, --url		Use video code instead of search string
+
+Video code for -URL is the part of URL after '/watch?v=', for example dQw4w9WgXcQ
+
+Check out GitHub page for more information and examples:
+https://github.com/xezo360hye/YTTY"
+
+	# Exit with status 0 if no arguments were given, otherwise with status '$1'.
+	exit ${1:-0}
+}
+
+
+# Simple logger.
+ytty::log() {
+	if $VERBOSE; then
+		echo -e "\e[36;1m[$(date +%T) at ${FUNCNAME[1]}] $@\e[0m" > "${LOG_FILE:-/dev/tty}"
+	fi
+}
+
+ytty::check_tty() {
+	# Check if in TTY.
+	if ! tty | grep "tty"; then
+		echo "Runnning in TTY mode is required to play videos using YTTY."
+		read -rsn1 -p "Sometimes this may be incorrect. If you are in a TTY, not X or wayland, press Y: "
+
+		# New line.
+		echo
+		case "$REPLY" in
+			[yY])
+				echo "On your own risk."
+				;;
+			*)
+				echo "Exiting..."
+				exit 2
+				;;
+		esac
+	fi
+}
+
+# set default values.
+ytty::defaults() {
+	# this line gets the display width and height in format 'width,height'.
+	local xy=$(cat /sys/class/graphics/fb0/virtual_size)
+	
+	x=${xy%,*}					# width
+	Y=${xy#*,}					# Height
+
+	COUNT=5						# Number of results to show.
+
+	PLAYER='mplayer'			# Player to use.
+	SEARCHER='youtube-dl'		# Searcher to use.
+	CACHE=1024					# This is 1MB or 1s depending on player.
+	
+	FORMAT="[%(channel)s] -> %(title)s.%(ext)s"	# Output format.
+
+	VERBOSE=false					# Verbose mode.
+	LOG_FILE=''					# Log file (empty means stdout).
+}
+
+ytty::search() {
+	# If URL is already set, exit
+	if [[ -n "${URL}" ]]; then
+		ytty::log "URL is already set, skiping"
+		return
+	fi
+
+	# It does not work without variable if search string contains spaces.
+	# Some legacy code so I don't remember why.
+	local request="ytsearch$COUNT:$@"
+	ytty::log "Starting search '$request'"
+
+	# Get JSON data containing videos info.
+	# Both youtube-dl and yt-dlp use '-j' for it.
+	local results=$( "$SEARCHER" -j "$request" )
+
+	# Extract titles and URLs from JSON data and store them in arrays.
+	local titles urls
+	mapfile -t titles < <( jq '.fulltitle' <<< "$results" | tr -d '"' )
+	mapfile -t urls < <( jq '.webpage_url' <<< "$results" | tr -d '"' ) 
+
+	# Sometimes count of results is less than requested.
+	# This is because of some results may be planned premieres and unavaiable for download.
+	ytty::log "Found '${#titles[@]}' results"
+
+	# Ask user to choose one of the videos.
+	PS3="Select video to watch: "
+	select video in "${titles[@]}"; do
+		URL="${urls[$(( $REPLY - 1 ))]}"
+		return
+	done
+}
+
+ytty::play() {
+	# To save file
+	if [[ "$FORMAT" != '' ]]; then
+		local out=$(youtube-dl --get-filename -o "$FORMAT" "$URL")
+		ytty::log "Duplicating to file $out"
+	fi
+
+	case "$PLAYER" in
+		# For me VLC shortcuts does not work in TTY and I don't know why.
+		# This means that you can't see the video and pause it.
+		# To exit you need to press Ctrl+C.
+		# If you know how to fix this, please let me know.
+		vlc)
+			# When using CACHE in VLC it's time in ms.
+			vlc --vout fb --file-caching="$CACHE" <(youtube-dl -o - "$URL" 2> /dev/null | tee "$out" 2> /dev/null)
+			;;
+		mplayer)
+			mplayer -cache "$CACHE" -vo fbdev2 -zoom -x "$X" -y "$Y" <(youtube-dl -o - "$URL" 2> /dev/null | tee "$out" 2> /dev/null)
+			;;
+		*)
+			echo "Unknown player '$2'"
+			exit 3
+			;;
+	esac
+}
+
+# Main function.
+ytty::start() {
+	# Set default values.
+	ytty::defaults
+
+	# Parse arguments.
+	# Unfortunatelly this cannot be a function because of shift.
+	while (( $# > 0 )); do
+		ytty::log "Parsing argument: '$1'"
+		case "$1" in
+		-h|--help)
+			# Display help and exit with default status code (0).
+			ytty::log "Displaying help"
+			ytty::usage
+			;;
+		-l|--log-file)
+			# Set ytty::log file.
+			ytty::log "Setting ytty::log file to '$2'"
+			LOG_FILE="$2"
+			shift 2
+			;;
+		-v|--verbose)
+			# Set verbose mode to command 'true'.
+			ytty::log "Verbose mode enabled, logging to '$LOG_FILE'"
+			VERBOSE=true
+			shift
+			;;
+		-f|--format)
+			# Format may be empty.
+			ytty::log "Format set to '$2'"
+			FORMAT="$2"
+			shift 2
+			;;
+		-n|--no-save)
+			# Do not save file.
+			ytty::log "Saving disabled"
+			FORMAT=''
+			shift
+			;;
+		-c|--cache)
+			if [[ -n "$2" && "$2" =~ ^[0-9]+$ ]]; then
+				ytty::log "Cache size set to '$2'"
+				# Set cache size to argument '$2'.
+				CACHE="$2"
+				shift 2
+			else
+				# Display error message and exit with error status code.
+				echo "Missing or invalid argument for option '$1'" 1>&2
+				ytty::usage 1
+			fi
+			;;
+		-p|--player)
+			if [[ -n "$2" && "$2" =~ ^(vlc|mplayer)$ ]]; then
+				ytty::log "Player set to '$2'"
+				# Set player to argument '$2'.
+				PLAYER="$2"
+				shift 2
+			else
+				# Display error message and exit with error status code.
+				echo "Missing or invalid argument for option '$1'" 1>&2
+				ytty::usage 1
+			fi
+			;;
+		-s|--searcher)
+			if [[ -n "$2" && "$2" =~ ^(youtube-dl|yt-dlp)$ ]]; then
+				ytty::log "Searcher set to '$2'"
+				# Set searcher to argument '$2'.
+				SEARCHER="$2"
+				shift 2
+			else
+				# Display error message and exit with error status code.
+				echo "Missing or invalid argument for option '$1'" 1>&2
+				ytty::usage 1
+			fi
+			;;
+		-u|--url)
+			# URL code is the part of URL after "/watch?v=".
+			if [[ -n "$2" && "$2" =~ ^[a-zA-Z0-9_-]+$ ]]; then
+				# Set URL code to argument '$2'.
+				ytty::log "URL code set to '$2'"
+				URL="$2"
+				shift 2
+			else
+				# Display error message and exit with error status code.
+				echo "Missing or invalid argument for option '$1'" 1>&2
+				ytty::usage 1
+			fi
+			;;
+		--)
+			# End of options.
+			ytty::log "End of options"
+			shift
+			break
+			;;
+		-*)
+			# If option is not recognized, display error message and exit with
+			echo "Unknown option '$1'" 1>&2
+			ytty::usage 2
+			;;
+		*)
+			# If argument is not an option, it is a search string.
+			ytty::log "End of options"
+			break
+			;;
+		esac
+	done
+	ytty::log "Importing and parsing arguments done"
+
+	# Check if in TTY. Only after parsing arguments because --help.
+	ytty::check_tty
+
+	# Search for videos.
+	ytty::search "$@"
+	ytty::log "URL code is '$URL'"
+
+	# Play video.
+	ytty::play "$URL"
+}
+
+
+
+# If script is run directly, run main functions.
+# If script is sourced, do nothing.
+if [[ "$BASH_SOURCE" == "$0" ]]; then
+	ytty::start "$@"
+fi
