@@ -36,7 +36,7 @@ Run `ytty [OPTIONS] Search request (may be quoted or not)` or `ytty [OPTIONS] --
 
 All options are CaSe insensitive
 
-When using -url, you need to enter video code, e.g. in *https://www.youtube.com/watch?v=__dQw4w9WgXcQ__* the code is *dQw4w9WgXcQ*
+When using -url, you need to enter video code, e.g. in *https://www.youtube.com/watch?v=dQw4w9WgXcQ* the code is *dQw4w9WgXcQ*
 
 *Note: mplayer uses framebuffer in this project so you need to switch to a TTY. To do this, press `Alt + Ctrl + Fn`, where `n` is any number except 7 (Debian/Ubuntu) or 1 (Arch mostly), because they are occupied with X*
 
