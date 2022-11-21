@@ -59,7 +59,7 @@ ytty::log() {
 
 ytty::check_tty() {
 	# Check if in TTY.
-	if ! tty | grep "tty"; then
+	if ! tty | grep "tty" &> /dev/null; then
 		echo "Runnning in TTY mode is required to play videos using YTTY."
 		read -rsn1 -p "Sometimes this may be incorrect. If you are in a TTY, not X or wayland, press Y: "
 
